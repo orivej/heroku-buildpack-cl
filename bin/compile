@@ -2,7 +2,7 @@
 # bin/compile <build-dir> <cache-dir>
 set -e -o pipefail
 
-SBCL_URI="${SBCL_URI:-http://prdownloads.sourceforge.net/sbcl/sbcl-1.1.11-x86-64-linux-binary.tar.bz2}"
+SBCL_URI="${SBCL_URI:-https://s3.amazonaws.com/orivej-sbcl/sbcl-1.1.11-glibc-2.7-x86-64-linux-binary.tar.bz2}"
 
 export BUILD_DIR="$1/"
 export CACHE_DIR="$2/"
