@@ -5,9 +5,9 @@ My edition of the SBCL buildpack for Heroku by [Mike Travers](https://github.com
 
 Differences from Anton's buildpack:
 * Cache Quicklisp archives between rebuilds.
-* Streamline slug layout.
+* Streamline [slug](https://devcenter.heroku.com/articles/slug-compiler) layout.
 * Simplify Procfile.
-* Provides test-run to simulate remote environment locally.
+* Provide test-run to simulate remote environment locally.
 
 ## Usage
 
@@ -24,18 +24,22 @@ and `*cache-dir*` - the pathname of the cache which persists across builds.
 Then _quicklisp/_ is copied from the cache dir to the build dir.
 
 A simple _heroku-compile.lisp_ for _my-system.asd_:
-```
+
+```lisp
 (require-quicklisp)
 (ql:quickload :my-system)
 ```
 
 You provide a [Procfile](https://devcenter.heroku.com/articles/procfile) in the
 root of your source tree, which may launch SBCL from path.
+
 ```
-web: sbcl --script heroku-web.lisp
+web: sbcl --script my-launcher.lisp
 ```
+
 The script develops its environment for itself:
-```
+
+```lisp
 (load "quicklisp/setup.lisp")
 (push #p"./" asdf:*central-registry*)
 (require :my-system)
@@ -44,12 +48,14 @@ The script develops its environment for itself:
 
 ```
 
+You [create an app with this buildpack](https://devcenter.heroku.com/articles/buildpacks#using-a-custom-buildpack).
+
 ## Suggestions
 
 ### SIGTERM
 
 Heroku sends all your processes SIGTERM when it wants to terminate their dyno.  Handle it with
-```
+```lisp
 (sb-sys:enable-interrupt sb-posix:sigterm (lambda (sig info context) ...))
 ```
 
@@ -57,7 +63,7 @@ Heroku sends all your processes SIGTERM when it wants to terminate their dyno.  
 
 Compile SWANK (silently):
 
-```
+```lisp
 (ql-impl-util:call-with-quiet-compilation
  (lambda ()
    (load (compile-file (asdf:system-relative-pathname "swank" "swank-loader.lisp")))))
@@ -71,7 +77,7 @@ Compile SWANK (silently):
 
 Load and start SWANK (silently, ignoring ~/.swank in the development environment):
 
-```
+```lisp
 (load (asdf:system-relative-pathname "swank" "swank-loader.fasl"))
 (defun swank-loader::load-user-init-file ())
 (setf swank-loader:*fasl-directory* swank-loader:*source-directory*)
@@ -80,3 +86,7 @@ Load and start SWANK (silently, ignoring ~/.swank in the development environment
    (swank-loader:init)))
 (swank:create-server :port 4005 :dont-close t)
 ```
+
+### Simulating remote environment locally
+
+Checkout the buildpack and from the root of your source tree, after commiting all changes, run `.../heroku-buildpack-cl/bin/test-compile` and then `.../heroku-buildpack-cl/bin/test-run --script my-launcher.lisp`
