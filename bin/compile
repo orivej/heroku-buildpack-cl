@@ -18,7 +18,7 @@ fi
 if [ ! -e "$CACHE_DIR/sbcl/install.sh" ]; then
     mkdir -p "$CACHE_DIR/sbcl"
     log "Fetching SBCL..."
-    curl $SBCL_URI -s -o - | tar xf - -C "$CACHE_DIR/sbcl" --strip-components 1
+    curl $SBCL_URI -s -L -o - | tar xf - -C "$CACHE_DIR/sbcl" --strip-components 1
 fi
 log "Installing SBCL..."
 (
