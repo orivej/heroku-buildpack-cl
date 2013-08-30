@@ -1,42 +1,35 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
+set -e -o pipefail
 
-function indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
-}
+SBCL_URI="${SBCL_URI:-http://prdownloads.sourceforge.net/sbcl/sbcl-1.1.11-x86-64-linux-binary.tar.bz2}"
 
-# parse and derive params
-BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd) # absolute path of buildpack
-BUILD_DIR=$1
-CACHE_DIR=$2
+export BUILD_DIR="$1/"
+export CACHE_DIR="$2/"
 
-echo "-----> compile params: $BUILD_DIR $CACHE_DIR"
+function log { echo "-----> $@"; }
+function indent { sed -ue 's/^/       /'; }
 
-if [ $RESET_CACHE ]; then
-  echo "-----> flushing cache"
-  rm -rf $CACHE_DIR/*
+if [ "$RESET_CACHE" ]; then
+  log "Flushing cache..."
+  rm -rf "$CACHE_DIR"
 fi
 
-if [ ! -d "$CACHE_DIR/sbcl/sbcl-1.0.54-x86-64-linux" ]; then
-    echo "-----> Fetching sbcl"    
-    SBCL_PACKAGE="http://sbcl-heroku.s3.amazonaws.com/sbcl-1.0.54-x86-64-linux-binary.tar.bz2"
-    mkdir -p "$CACHE_DIR/sbcl" && curl $SBCL_PACKAGE -s -o -  | tar xjf - -C "$CACHE_DIR/sbcl"
-    chmod +x "$CACHE_DIR/sbcl/sbcl-1.0.54-x86-64-linux/run-sbcl.sh"
+if [ ! -e "$CACHE_DIR/sbcl/install.sh" ]; then
+    mkdir -p "$CACHE_DIR/sbcl"
+    log "Fetching SBCL..."
+    curl $SBCL_URI -s -o - | tar xf - -C "$CACHE_DIR/sbcl" --strip-components 1
 fi
-# add to slug 
-cp -r "$CACHE_DIR/sbcl" $BUILD_DIR
-echo "sbcl installed" | indent
+log "Installing SBCL..."
+(
+    cd $CACHE_DIR/sbcl
+    env SBCL_HOME= INSTALL_ROOT="$BUILD_DIR" sh install.sh 2>&1 >/dev/null | { grep -v doc/manual || true; } | indent
+)
 
-# setting up paths for building
+log "Compiling sources..."
+env SBCL_HOME="$BUILD_DIR/lib/sbcl" "$BUILD_DIR/bin/sbcl" --script "$(dirname $0)/../compile.lisp" "$BUILD_DIR" "$CACHE_DIR" |& indent
 
-export BUILDPACK_DIR
-export CACHE_DIR
-export BUILD_DIR
-
-echo "-----> Starting build"
-$BUILD_DIR/sbcl/sbcl-1.0.54-x86-64-linux/run-sbcl.sh --load "$BUILDPACK_DIR/bin/compile.lisp" --eval "(sb-ext:quit)"
-echo "-----> Build finished"
+if [ -d "$CACHE_DIR/quicklisp" ]; then
+    log "Copying Quicklisp..."
+    rsync -a "$CACHE_DIR/quicklisp/" "$BUILD_DIR/quicklisp/"
+fi

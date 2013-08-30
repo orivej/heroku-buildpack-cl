@@ -34,6 +34,7 @@
            #:ecl
            #:gcl
            #:lispworks
+	   #:mkcl
            #:scl
            #:sbcl))
 
@@ -304,6 +305,22 @@
                   #:socket-connect
                   #:socket-make-stream))
 
+;;; MKCL
+
+(define-implementation-package :mkcl #:qlqs-mkcl
+  (:class mkcl)
+  (:documentation
+   "ManKai Common Lisp - http://common-lisp.net/project/mkcl/")
+  (:prep
+   (require 'sockets))
+  (:intern #:host-network-address)
+  (:reexport-from #:sb-bsd-sockets
+                  #:get-host-by-name
+                  #:inet-socket
+                  #:host-ent-address
+                  #:socket-connect
+                  #:socket-make-stream))
+
 ;;;
 ;;; Utility function
 ;;;
@@ -341,6 +358,8 @@
 (definterface host-address (host)
   (:implementation t
     host)
+  (:implementation mkcl
+    (qlqs-mkcl:host-ent-address (qlqs-mkcl:get-host-by-name host)))
   (:implementation sbcl
     (qlqs-sbcl:host-ent-address (qlqs-sbcl:get-host-by-name host))))
 
@@ -391,6 +410,18 @@
                                    :read-timeout nil
                                    :element-type '(unsigned-byte 8)
                                    :timeout 5))
+  (:implementation mkcl
+    (let* ((endpoint (qlqs-mkcl:host-ent-address
+                      (qlqs-mkcl:get-host-by-name host)))
+           (socket (make-instance 'qlqs-mkcl:inet-socket
+                                  :protocol :tcp
+                                  :type :stream)))
+      (qlqs-mkcl:socket-connect socket endpoint port)
+      (qlqs-mkcl:socket-make-stream socket
+                                   :element-type '(unsigned-byte 8)
+                                   :input t
+                                   :output t
+                                   :buffering :full)))
   (:implementation sbcl
     (let* ((endpoint (qlqs-sbcl:host-ent-address
                       (qlqs-sbcl:get-host-by-name host)))
@@ -937,7 +968,7 @@
                                   (format nil ":~D" port)))
       (add-line "Connection: close")
       ;; FIXME: get this version string from somewhere else.
-      (add-line "User-Agent: quicklisp-bootstrap/2011103100")
+      (add-line "User-Agent: quicklisp-bootstrap/2013082800")
       (add-newline sink)
       (sink-buffer sink))))
 
@@ -1553,6 +1584,15 @@ the indexes in the header accordingly."
 
 (defun install (&key ((:path *home*) *home*)
                 ((:proxy *proxy-url*) *proxy-url*))
+  (when (pathname-name *home*)
+    (let ((name (pathname-name *home*)))
+      (warn "Making ~A part of the install pathname directory"
+            name)
+      ;; This corrects a pathname like "/foo/bar" to "/foo/bar/"
+      (setf *home*
+            (make-pathname :defaults *home*
+                           :directory (append (pathname-directory *home*)
+                                              (list name))))))
   (setf *home* (merge-pathnames *home*))
   (let ((setup-file (qmerge "setup.lisp")))
     (when (probe-file setup-file)

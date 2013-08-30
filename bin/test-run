@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+[ "$*" ] || { echo "Usage: $0 --script path/to/launcher.lisp"; exit 1; }
+
+# This is a script to simulate sbcl invocation in Procfile locally
+cd /tmp/build
+env CL_SOURCE_REGISTRY="(:source-registry :ignore-inherited-configuration)" \
+    ASDF_OUTPUT_TRANSLATIONS="/:" \
+    SBCL_HOME=lib/sbcl bin/sbcl "$@"
