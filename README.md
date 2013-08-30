@@ -91,4 +91,4 @@ Load and start SWANK (silently, ignoring ~/.swank in the development environment
 
 ### Simulating remote environment locally
 
-Checkout the buildpack and from the root of your source tree, after commiting all changes, run `.../heroku-buildpack-cl/bin/test-compile` and then `.../heroku-buildpack-cl/bin/test-run --script my-launcher.lisp`
+Checkout the buildpack and from the root of your source tree, after commiting all changes, run `.../heroku-buildpack-cl/bin/test-compile` and then `env PORT=8080 .../heroku-buildpack-cl/bin/test-run --script my-launcher.lisp`
