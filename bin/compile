@@ -31,5 +31,5 @@ env SBCL_HOME="$BUILD_DIR/lib/sbcl" "$BUILD_DIR/bin/sbcl" --script "$(dirname $0
 
 if [ -d "$CACHE_DIR/quicklisp" ]; then
     log "Copying Quicklisp..."
-    rsync -a "$CACHE_DIR/quicklisp/" "$BUILD_DIR/quicklisp/"
+    cp -r "$CACHE_DIR/quicklisp/" "$BUILD_DIR/"
 fi
