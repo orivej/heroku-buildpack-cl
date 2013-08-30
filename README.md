@@ -64,6 +64,8 @@ Heroku sends all your processes SIGTERM when it wants to terminate their dyno.  
 Compile SWANK (silently):
 
 ```lisp
+(require-quicklisp)
+(ql-dist:install (ql-dist:find-system "swank"))
 (ql-impl-util:call-with-quiet-compilation
  (lambda ()
    (load (compile-file (asdf:system-relative-pathname "swank" "swank-loader.lisp")))))
