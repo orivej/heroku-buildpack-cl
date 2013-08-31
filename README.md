@@ -74,7 +74,7 @@ Compile SWANK (silently):
 (ql-impl-util:call-with-quiet-compilation
  (lambda ()
    (swank-loader:init :setup nil :quiet t)
-   (swank-loader::compile-contribs :load nil :quiet t )))
+   (swank-loader::compile-contribs :load nil :quiet t)))
 ```
 
 Load and start SWANK (silently, ignoring ~/.swank in the development environment):
