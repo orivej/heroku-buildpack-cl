@@ -3,6 +3,7 @@
 cat << EOF
 ---
 config_vars:
+  LANG: en_US.UTF-8
   PATH: bin:/usr/bin:/bin
   SBCL_HOME: lib/sbcl
   CL_SOURCE_REGISTRY: (:source-registry :ignore-inherited-configuration)
