@@ -27,7 +27,7 @@ log "Installing SBCL..."
 )
 
 log "Compiling sources..."
-env SBCL_HOME="$BUILD_DIR/lib/sbcl" "$BUILD_DIR/bin/sbcl" --script "$(dirname $0)/../compile.lisp" "$BUILD_DIR" "$CACHE_DIR" |& indent
+env LANG=en_US.UTF-8 SBCL_HOME="$BUILD_DIR/lib/sbcl" "$BUILD_DIR/bin/sbcl" --script "$(dirname $0)/../compile.lisp" "$BUILD_DIR" "$CACHE_DIR" |& indent
 
 if [ -d "$CACHE_DIR/quicklisp" ]; then
     log "Copying Quicklisp..."
