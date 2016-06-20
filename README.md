@@ -31,7 +31,7 @@ A simple _heroku-compile.lisp_ for _my-system.asd_:
 ```
 
 You provide a [Procfile](https://devcenter.heroku.com/articles/procfile) in the
-root of your source tree, which may launch SBCL from path.
+root of your source tree, which may launch SBCL from PATH.
 
 ```
 web: sbcl --script my-launcher.lisp
